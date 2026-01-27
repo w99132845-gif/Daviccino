@@ -7,7 +7,7 @@ import threading
 import asyncio
 import time
 
-# OWNER ID (you) - change this to your Discord ID
+# OWNER ID (you) - always VIP
 OWNER_ID = 864380109682900992
 
 # VIP list - starts empty, added via /addvip
@@ -46,41 +46,109 @@ async def on_message(message):
 
     await bot.process_commands(message)
 
-# /mimic - OWNER ONLY
-@bot.tree.command(name="mimic", description="Start mimicking a user (owner only)")
-async def mimic(interaction: discord.Interaction, member: discord.Member):
+# Helper function to check if user is VIP or owner
+async def is_vip(interaction: discord.Interaction):
+    if interaction.user.id == OWNER_ID or interaction.user.id in VIP_IDS:
+        return True
+    await interaction.response.send_message("Only VIPs can use this command.", ephemeral=True)
+    return False
+
+# /addvip - OWNER ONLY
+@bot.tree.command(name="addvip", description="Add a user to VIP list (owner only)")
+async def addvip(interaction: discord.Interaction, member: discord.Member):
     if interaction.user.id != OWNER_ID:
-        await interaction.response.send_message("Only owner can use this.", ephemeral=True)
+        await interaction.response.send_message("Only the owner can use /addvip.", ephemeral=True)
+        return
+
+    if member.id == OWNER_ID:
+        await interaction.response.send_message("The owner is already VIP!", ephemeral=True)
+        return
+
+    if member.id in VIP_IDS:
+        await interaction.response.send_message(f"{member.mention} is already VIP!", ephemeral=True)
+        return
+
+    VIP_IDS.append(member.id)
+    await interaction.response.send_message(f"{member.mention} is now VIP! 👑", ephemeral=True)
+
+# /removevip - OWNER ONLY
+@bot.tree.command(name="removevip", description="Remove a user from VIP list (owner only)")
+async def removevip(interaction: discord.Interaction, member: discord.Member):
+    if interaction.user.id != OWNER_ID:
+        await interaction.response.send_message("Only the owner can use /removevip.", ephemeral=True)
+        return
+
+    if member.id == OWNER_ID:
+        await interaction.response.send_message("Can't remove the owner!", ephemeral=True)
+        return
+
+    if member.id not in VIP_IDS:
+        await interaction.response.send_message(f"{member.mention} is not VIP!", ephemeral=True)
+        return
+
+    VIP_IDS.remove(member.id)
+    await interaction.response.send_message(f"{member.mention} is no longer VIP.", ephemeral=True)
+
+# /viplist - VIPs ONLY
+@bot.tree.command(name="viplist", description="Show current VIP list (VIPs only)")
+async def viplist(interaction: discord.Interaction):
+    if not await is_vip(interaction):
+        return
+
+    if not VIP_IDS:
+        await interaction.response.send_message("No VIPs yet! 👑", ephemeral=False)
+        return
+
+    vip_mentions = []
+    for user_id in VIP_IDS:
+        user = bot.get_user(user_id)
+        if user:
+            vip_mentions.append(user.mention)
+        else:
+            vip_mentions.append(f"<@{user_id}> (unknown)")
+
+    vip_list = "\n".join(vip_mentions)
+    await interaction.response.send_message(f"**Current VIPs:** 👑\n{vip_list}", ephemeral=False)
+
+# /say - VIPs ONLY, silent
+@bot.tree.command(name="say", description="Make the bot say anything (VIPs only)")
+async def say(interaction: discord.Interaction, text: str):
+    if not await is_vip(interaction):
+        return
+    await interaction.channel.send(text)
+    await interaction.response.send_message("Sent silently! 🔥", ephemeral=True)
+
+# /mimic - VIPs ONLY
+@bot.tree.command(name="mimic", description="Start mimicking a user (VIPs only)")
+async def mimic(interaction: discord.Interaction, member: discord.Member):
+    if not await is_vip(interaction):
         return
     global mimic_target
     mimic_target = member.id
     await interaction.response.send_message(f"Now mimicking {member.mention} silently.", ephemeral=True)
 
-# /stopmimic - OWNER ONLY
-@bot.tree.command(name="stopmimic", description="Stop mimicking (owner only)")
+# /stopmimic - VIPs ONLY
+@bot.tree.command(name="stopmimic", description="Stop mimicking (VIPs only)")
 async def stopmimic(interaction: discord.Interaction):
-    if interaction.user.id != OWNER_ID:
-        await interaction.response.send_message("Only owner can use this.", ephemeral=True)
+    if not await is_vip(interaction):
         return
     global mimic_target
     mimic_target = None
     await interaction.response.send_message("Mimic stopped.", ephemeral=True)
 
-# /autoreact - OWNER ONLY
-@bot.tree.command(name="autoreact", description="Auto-react to a user's messages (owner only)")
+# /autoreact - VIPs ONLY
+@bot.tree.command(name="autoreact", description="Set auto-react to a user's messages (VIPs only)")
 async def autoreact(interaction: discord.Interaction, member: discord.Member, emoji: str):
-    if interaction.user.id != OWNER_ID:
-        await interaction.response.send_message("Only owner can use this.", ephemeral=True)
+    if not await is_vip(interaction):
         return
     global autoreact_targets
     autoreact_targets[member.id] = emoji
     await interaction.response.send_message(f"Auto-react set for {member.mention} with {emoji}.", ephemeral=True)
 
-# /stopautoreact - OWNER ONLY
-@bot.tree.command(name="stopautoreact", description="Stop auto-react for a user (owner only)")
+# /stopautoreact - VIPs ONLY
+@bot.tree.command(name="stopautoreact", description="Stop auto-react for a user (VIPs only)")
 async def stopautoreact(interaction: discord.Interaction, member: discord.Member):
-    if interaction.user.id != OWNER_ID:
-        await interaction.response.send_message("Only owner can use this.", ephemeral=True)
+    if not await is_vip(interaction):
         return
     global autoreact_targets
     if member.id in autoreact_targets:
@@ -88,55 +156,6 @@ async def stopautoreact(interaction: discord.Interaction, member: discord.Member
         await interaction.response.send_message(f"Auto-react stopped for {member.mention}.", ephemeral=True)
     else:
         await interaction.response.send_message(f"No auto-react set for {member.mention}.", ephemeral=True)
-
-# /addvip - OWNER ONLY
-@bot.tree.command(name="addvip", description="Add user to VIP (cannot be roasted) (owner only)")
-async def addvip(interaction: discord.Interaction, member: discord.Member):
-    if interaction.user.id != OWNER_ID:
-        await interaction.response.send_message("Only owner can use this.", ephemeral=True)
-        return
-    if member.id == OWNER_ID:
-        await interaction.response.send_message("Owner is already VIP!", ephemeral=True)
-        return
-    if member.id in VIP_IDS:
-        await interaction.response.send_message(f"{member.mention} is already VIP!", ephemeral=True)
-        return
-    VIP_IDS.append(member.id)
-    await interaction.response.send_message(f"{member.mention} is now VIP! 👑", ephemeral=True)
-
-# /removevip - OWNER ONLY
-@bot.tree.command(name="removevip", description="Remove user from VIP (owner only)")
-async def removevip(interaction: discord.Interaction, member: discord.Member):
-    if interaction.user.id != OWNER_ID:
-        await interaction.response.send_message("Only owner can use this.", ephemeral=True)
-        return
-    if member.id == OWNER_ID:
-        await interaction.response.send_message("Can't remove owner!", ephemeral=True)
-        return
-    if member.id not in VIP_IDS:
-        await interaction.response.send_message(f"{member.mention} is not VIP!", ephemeral=True)
-        return
-    VIP_IDS.remove(member.id)
-    await interaction.response.send_message(f"{member.mention} is no longer VIP.", ephemeral=True)
-
-# /viplist - PUBLIC
-@bot.tree.command(name="viplist", description="Show current VIP list (public)")
-async def viplist(interaction: discord.Interaction):
-    if not VIP_IDS:
-        await interaction.response.send_message("No VIPs yet! 👑", ephemeral=False)
-        return
-
-    mentions = [f"<@{uid}>" for uid in VIP_IDS]
-    await interaction.response.send_message(f"**VIPs (immune):** 👑\n" + "\n".join(mentions), ephemeral=False)
-
-# /say - OWNER ONLY, silent
-@bot.tree.command(name="say", description="Make bot say anything (owner only)")
-async def say(interaction: discord.Interaction, text: str):
-    if interaction.user.id != OWNER_ID:
-        await interaction.response.send_message("Only owner can use /say.", ephemeral=True)
-        return
-    await interaction.channel.send(text)
-    await interaction.response.send_message("Sent silently! 🔥", ephemeral=True)
 
 # !roast - ANYONE can use, but CANNOT roast owner or VIPs
 @bot.command()
@@ -148,7 +167,7 @@ async def roast(ctx, member: discord.Member = None):
         await ctx.send("Can't roast the owner or VIPs! 👑")
         return
 
-    # 50 ultra-dark roasts
+    # 50 ultra-dark roasts (you can expand this list)
     roasts = [
         "{user}, you worthless piece of shit, your mom should've swallowed you like the cum you are.",
         "{user}, go fucking hang yourself, you pathetic cunt — no one would miss your retarded ass.",
@@ -187,40 +206,4 @@ async def roast(ctx, member: discord.Member = None):
         "{user}, go drown in cum, you gangbang slut — that's all you're good for.",
         "{user}, your life is a Holocaust that never happened — too bad.",
         "{user}, you're a child rapist in training — we all see it, you sick pedo cunt.",
-        "{user}, go set yourself on fire, you flammable piece of trash.",
-        "{user}, your dad beats your mom because even she regrets birthing you.",
-        "{user}, you're the cum your dad should've shot in the toilet.",
-        "{user}, go get run over by a truck, you roadkill-looking motherfucker.",
-        "{user}, your existence is the only argument for genocide.",
-        "{user}, you're so ugly even your reflection commits suicide.",
-        "{user}, go eat shit and die, you coprophilic freak.",
-        "{user}, your mom is a meth whore and you're the crystal baby.",
-        "{user}, you're the reason why some people support forced sterilization.",
-        "{user}, go fuck your sister again — it's the only action you'll ever get.",
-        "{user}, your life is a death sentence that hasn't been carried out yet.",
-        "{user}, you're a walking STD — quarantine yourself permanently.",
-        "{user}, your dad wishes he was gay so he never would've fucked your mom.",
-        "{user}, go choke on a dick and die, you throat cancer candidate."
-    ]
-
-    roast_text = random.choice(roasts).format(user=member.mention)
-    await ctx.send(roast_text)
-
-# Run bot in background thread
-def run_discord_bot():
-    time.sleep(5)
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    loop.run_until_complete(bot.start(os.getenv("DISCORD_TOKEN")))
-
-threading.Thread(target=run_discord_bot, daemon=True).start()
-
-# Flask server for Render keep-alive
-app = Flask(__name__)
-
-@app.route("/")
-def home():
-    return "Phantom Daviccino is alive! 🔥"
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.getenv("PORT", 8080)))
+        "{user}, go set yourself on
