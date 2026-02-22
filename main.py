@@ -8,7 +8,7 @@ import asyncio
 import time
 
 # OWNER ID (you) - always protected
-OWNER_ID = 864380109682900992  # ← Change to your real Discord ID
+OWNER_ID = 864380109682900992  # ← CHANGE TO YOUR REAL DISCORD ID
 
 # VIP list - starts empty, added via /vipadd
 VIP_IDS = []
@@ -19,53 +19,15 @@ intents.members = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-# Mimic target
-mimic_target = None
-
-# 3 rotating playing statuses (changes every 5 seconds)
-STATUSES = [
-    discord.Game(name="Daviccino Daddy 🔥"),
-    discord.Game(name="Ohh kevin de brunye ⚽️"),
-    discord.Game(name="Listening to Albert Fish")
-]
-
-async def rotate_status():
-    i = 0
-    while True:
-        await bot.change_presence(activity=STATUSES[i])
-        i = (i + 1) % len(STATUSES)
-        await asyncio.sleep(5)  # change every 5 seconds
-
 @bot.event
 async def on_ready():
     print(f"{bot.user} is online!")
-    bot.loop.create_task(rotate_status())  # start status rotation
     await bot.tree.sync()
     print("Slash commands synced!")
 
-@bot.event
-async def on_message(message):
-    if message.author.bot:
-        return
-
-    # Mimic mode: bot speaks as the mimicked user
-    global mimic_target
-    if mimic_target and message.author.id == OWNER_ID:
-        if mimic_target:
-            webhook = await message.channel.create_webhook(name=bot.get_user(mimic_target).name)
-            await webhook.send(
-                message.content,
-                username=bot.get_user(mimic_target).name,
-                avatar_url=bot.get_user(mimic_target).avatar.url
-            )
-            await webhook.delete()
-            await message.delete()  # hide your command
-
-    await bot.process_commands(message)
-
-# /mimic - VIPs only, can't mimic owner
-@bot.tree.command(name="mimic", description="Make bot mimic a user (VIPs only)")
-async def mimic(interaction: discord.Interaction, member: discord.Member):
+# /mimic @user message - VIPs only, sends as that user in one command
+@bot.tree.command(name="mimic", description="Send message as another user (VIPs only)")
+async def mimic(interaction: discord.Interaction, member: discord.Member, message: str):
     if interaction.user.id != OWNER_ID and interaction.user.id not in VIP_IDS:
         await interaction.response.send_message("Only VIPs can use this.", ephemeral=True)
         return
@@ -74,20 +36,23 @@ async def mimic(interaction: discord.Interaction, member: discord.Member):
         await interaction.response.send_message("Can't mimic the owner!", ephemeral=True)
         return
 
-    global mimic_target
-    mimic_target = member.id
-    await interaction.response.send_message(f"Now mimicking {member.mention} — type to speak as them.", ephemeral=True)
-
-# /stopmimic - VIPs only
-@bot.tree.command(name="stopmimic", description="Stop mimicking (VIPs only)")
-async def stopmimic(interaction: discord.Interaction):
-    if interaction.user.id != OWNER_ID and interaction.user.id not in VIP_IDS:
-        await interaction.response.send_message("Only VIPs can use this.", ephemeral=True)
+    if member.bot:
+        await interaction.response.send_message("Can't mimic bots!", ephemeral=True)
         return
 
-    global mimic_target
-    mimic_target = None
-    await interaction.response.send_message("Mimic stopped.", ephemeral=True)
+    # Delete your command message
+    await interaction.delete_original_response()
+
+    # Create temporary webhook to mimic the user
+    webhook = await interaction.channel.create_webhook(name=member.name)
+    await webhook.send(
+        content=message,
+        username=member.name,
+        avatar_url=member.avatar.url if member.avatar else None
+    )
+
+    # Clean up webhook immediately
+    await webhook.delete()
 
 # !roast - anyone can use, harsh for normal, light for VIPs, can't roast owner
 @bot.command()
