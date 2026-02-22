@@ -7,8 +7,8 @@ import threading
 import asyncio
 import time
 
-# OWNER ID (you) - always protected
-OWNER_ID = 864380109682900992  # ← CHANGE TO YOUR REAL DISCORD ID
+# OWNER ID (you) - always protected, can do everything
+OWNER_ID = 864380109682900992  # ← CHANGE TO YOUR REAL DISCORD ID IF NEEDED
 
 # VIP list - starts empty, added via /vipadd
 VIP_IDS = []
@@ -22,35 +22,37 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 # Mimic target
 mimic_target = None
 
+# 3 rotating playing statuses - changes every 5 seconds
+STATUSES = [
+    discord.Game(name="Daviccino Daddy 🔥"),
+    discord.Game(name="Ohh kevin de brunye ⚽️"),
+    discord.Game(name="Listening to Albert Fish")
+]
+
 @bot.event
 async def on_ready():
     print(f"{bot.user} is online!")
-    
-    # Set status to Do Not Disturb (DND) + playing rotation
+
+    # Set DND + initial status
     await bot.change_presence(
-        status=discord.Status.dnd,  # Red DND circle
-        activity=discord.Game(name="Daviccino Daddy 🔥")  # initial status
+        status=discord.Status.dnd,
+        activity=STATUSES[0]
     )
-    
-    # Start rotating playing status every 5 seconds while staying DND
+
+    # Start rotation loop
     bot.loop.create_task(rotate_status())
-    
+
     await bot.tree.sync()
     print("Slash commands synced!")
 
 async def rotate_status():
-    statuses = [
-        discord.Game(name="Daviccino Daddy 🔥"),
-        discord.Game(name="Ohh kevin de brunye ⚽️"),
-        discord.Game(name="Listening to Albert Fish")
-    ]
     i = 0
     while True:
         await bot.change_presence(
-            status=discord.Status.dnd,  # Keep DND always
-            activity=statuses[i]
+            status=discord.Status.dnd,  # always DND
+            activity=STATUSES[i]
         )
-        i = (i + 1) % len(statuses)
+        i = (i + 1) % len(STATUSES)
         await asyncio.sleep(5)
 
 @bot.event
@@ -58,7 +60,7 @@ async def on_message(message):
     if message.author.bot:
         return
 
-    # Mimic mode: send as the mimicked user
+    # Mimic mode
     global mimic_target
     if mimic_target and message.author.id == OWNER_ID:
         if mimic_target:
@@ -69,7 +71,7 @@ async def on_message(message):
                 avatar_url=bot.get_user(mimic_target).avatar.url if bot.get_user(mimic_target).avatar else None
             )
             await webhook.delete()
-            await message.delete()  # hide your command
+            await message.delete()  # hide command
 
     await bot.process_commands(message)
 
@@ -88,10 +90,8 @@ async def mimic(interaction: discord.Interaction, member: discord.Member, messag
         await interaction.response.send_message("Can't mimic bots!", ephemeral=True)
         return
 
-    # Acknowledge immediately (no timeout)
     await interaction.response.defer(ephemeral=True)
 
-    # Send as mimicked user
     webhook = await interaction.channel.create_webhook(name=member.name)
     await webhook.send(
         content=message,
@@ -102,7 +102,7 @@ async def mimic(interaction: discord.Interaction, member: discord.Member, messag
 
     await interaction.followup.send(f"Sent as {member.mention}.", ephemeral=True)
 
-# !roast - anyone can use, harsh for normal, light for VIPs, can't roast owner
+# !roast - anyone can use
 @bot.command()
 async def roast(ctx, member: discord.Member = None):
     if member is None:
@@ -122,7 +122,27 @@ async def roast(ctx, member: discord.Member = None):
         "{user}, your vibe is so off Wi-Fi disconnected.",
         "{user}, bro you're built like a mod — zero aura.",
         "{user}, your playlist is trash.",
-        "{user}, you're low battery 24/7."
+        "{user}, you're low battery 24/7.",
+        "{user}, bro your haircut needs a glow-up.",
+        "{user}, you're the reason mute exists sometimes.",
+        "{user}, your chat is quiet today.",
+        "{user}, bro you're the side character.",
+        "{user}, your drip is basic.",
+        "{user}, you're getting ratio'd by your mirror.",
+        "{user}, your personality is chill but mid.",
+        "{user}, bro you peaked somewhere.",
+        "{user}, your memes are vintage.",
+        "{user}, you're why 'seen' exists.",
+        "{user}, bro your game is weak.",
+        "{user}, your style is default.",
+        "{user}, you're Comic Sans energy.",
+        "{user}, bro your life is offline.",
+        "{user}, you're 12-year-old deep.",
+        "{user}, your roasts need spice.",
+        "{user}, bro you're lagging.",
+        "{user}, your energy is ghost mode.",
+        "{user}, you're 'no cap' but cap.",
+        "{user}, bro your face card is declined."
     ]
 
     light = [
@@ -135,7 +155,27 @@ async def roast(ctx, member: discord.Member = None):
         "{user}, your vibe is off a bit.",
         "{user}, bro you're sidekick energy.",
         "{user}, your playlist needs work.",
-        "{user}, you're low battery mode."
+        "{user}, you're low battery mode.",
+        "{user}, bro your haircut is okay.",
+        "{user}, you're the reason mute exists sometimes.",
+        "{user}, your chat is quiet today.",
+        "{user}, bro you're side character energy.",
+        "{user}, your drip is basic.",
+        "{user}, you're getting ratio'd by your mirror.",
+        "{user}, your personality is chill.",
+        "{user}, bro you peaked somewhere.",
+        "{user}, your memes are vintage.",
+        "{user}, you're why 'seen' exists.",
+        "{user}, bro your game is okay.",
+        "{user}, your style is default.",
+        "{user}, you're Comic Sans energy.",
+        "{user}, bro your life is offline.",
+        "{user}, you're 12-year-old deep.",
+        "{user}, your roasts are okay.",
+        "{user}, bro you're lagging a bit.",
+        "{user}, your energy is ghost mode.",
+        "{user}, you're 'no cap' but cap.",
+        "{user}, bro your face card is declined."
     ]
 
     if member.id in VIP_IDS:
