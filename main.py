@@ -7,8 +7,8 @@ import threading
 import asyncio
 import time
 
-# OWNER ID (you) - always protected, can do everything
-OWNER_ID = 864380109682900992  # CHANGE THIS TO YOUR REAL ID
+# OWNER ID (you) - always protected
+OWNER_ID = 864380109682900992  # ← Change to your real Discord ID
 
 # VIP list - starts empty, added via /vipadd
 VIP_IDS = []
@@ -19,107 +19,127 @@ intents.members = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 
+# Mimic target
+mimic_target = None
+
+# 3 rotating playing statuses (changes every 5 seconds)
+STATUSES = [
+    discord.Game(name="Daviccino Daddy 🔥"),
+    discord.Game(name="Ohh kevin de brunye ⚽️"),
+    discord.Game(name="Listening to Albert Fish")
+]
+
+async def rotate_status():
+    i = 0
+    while True:
+        await bot.change_presence(activity=STATUSES[i])
+        i = (i + 1) % len(STATUSES)
+        await asyncio.sleep(5)  # change every 5 seconds
+
 @bot.event
 async def on_ready():
     print(f"{bot.user} is online!")
+    bot.loop.create_task(rotate_status())  # start status rotation
     await bot.tree.sync()
     print("Slash commands synced!")
 
-# Harsh roasts for normal people
-harsh_roasts = [
-    "{user}, bro your aura is so negative even black holes said 'damn'.",
-    "{user}, you give main character energy... of a background NPC that dies in chapter 1.",
-    "{user}, your jokes are so dry the Sahara called and wants royalties.",
-    "{user}, bro tried to rizz but got sent to the shadow realm.",
-    "{user}, your fit is so mid even Wish said 'nah'.",
-    "{user}, you're the human version of a 404 error — not found and nobody cares.",
-    "{user}, your vibe is so off even your Wi-Fi ghosted you.",
-    "{user}, bro you're built like a Discord mod — zero aura, infinite ego.",
-    "{user}, your playlist is so trash even autoplay apologised.",
-    "{user}, you're giving low battery energy 24/7.",
-    "{user}, bro your haircut said 'I can fix him' and failed miserably.",
-    "{user}, you're the reason 'mute' exists in every VC.",
-    "{user}, your chat is so dead even ghosts left the server.",
-    "{user}, bro you're the side character in your own life story.",
-    "{user}, your drip is so bad even rain avoids you.",
-    "{user}, you're the type to get ratio'd by your own reflection.",
-    "{user}, your personality is so dry we need subtitles.",
-    "{user}, bro you’re giving 'I peaked in high school' energy.",
-    "{user}, your memes are so old they need a senior discount.",
-    "{user}, you're the reason 'seen' messages exist.",
-    "{user}, bro your game is so weak even bots reject you.",
-    "{user}, your style is so basic even NPCs have more drip.",
-    "{user}, you're the human version of Comic Sans — nobody takes you seriously.",
-    "{user}, bro your life is on airplane mode — no connection.",
-    "{user}, you're giving 'I'm 12 and this is deep' vibes.",
-    "{user}, your roasts are so weak even toddlers clap back.",
-    "{user}, bro you're the human version of lag — always behind.",
-    "{user}, your energy is so low even ghosts have more aura.",
-    "{user}, you're the reason why 'no cap' needs a cap.",
-    "{user}, bro your face card declined at birth."
-]
+@bot.event
+async def on_message(message):
+    if message.author.bot:
+        return
 
-# Light roasts for VIPs
-light_roasts = [
-    "{user}, bro your aura is lowkey mid today.",
-    "{user}, you give background character energy fr.",
-    "{user}, your jokes are kinda dry ngl.",
-    "{user}, bro tried to rizz but got curved.",
-    "{user}, your fit is mid, step up.",
-    "{user}, you're giving NPC vibes.",
-    "{user}, your vibe is off a little.",
-    "{user}, bro you're built like a sidekick.",
-    "{user}, your playlist needs work.",
-    "{user}, you're low battery energy.",
-    "{user}, bro your haircut needs a glow-up.",
-    "{user}, you're the reason mute exists sometimes.",
-    "{user}, your chat is quiet today.",
-    "{user}, bro you're the side character.",
-    "{user}, your drip is basic.",
-    "{user}, you're getting ratio'd by your mirror.",
-    "{user}, your personality is chill but mid.",
-    "{user}, bro you peaked somewhere.",
-    "{user}, your memes are vintage.",
-    "{user}, you're why 'seen' exists.",
-    "{user}, bro your game is weak.",
-    "{user}, your style is default.",
-    "{user}, you're Comic Sans energy.",
-    "{user}, bro your life is offline.",
-    "{user}, you're 12-year-old deep.",
-    "{user}, your roasts need spice.",
-    "{user}, bro you're lagging.",
-    "{user}, your energy is ghost mode.",
-    "{user}, you're 'no cap' but cap.",
-    "{user}, bro your face card is declined."
-]
+    # Mimic mode: bot speaks as the mimicked user
+    global mimic_target
+    if mimic_target and message.author.id == OWNER_ID:
+        if mimic_target:
+            webhook = await message.channel.create_webhook(name=bot.get_user(mimic_target).name)
+            await webhook.send(
+                message.content,
+                username=bot.get_user(mimic_target).name,
+                avatar_url=bot.get_user(mimic_target).avatar.url
+            )
+            await webhook.delete()
+            await message.delete()  # hide your command
 
-# !roast - anyone can use, but VIPs get light roast, owner blocked
+    await bot.process_commands(message)
+
+# /mimic - VIPs only, can't mimic owner
+@bot.tree.command(name="mimic", description="Make bot mimic a user (VIPs only)")
+async def mimic(interaction: discord.Interaction, member: discord.Member):
+    if interaction.user.id != OWNER_ID and interaction.user.id not in VIP_IDS:
+        await interaction.response.send_message("Only VIPs can use this.", ephemeral=True)
+        return
+
+    if member.id == OWNER_ID:
+        await interaction.response.send_message("Can't mimic the owner!", ephemeral=True)
+        return
+
+    global mimic_target
+    mimic_target = member.id
+    await interaction.response.send_message(f"Now mimicking {member.mention} — type to speak as them.", ephemeral=True)
+
+# /stopmimic - VIPs only
+@bot.tree.command(name="stopmimic", description="Stop mimicking (VIPs only)")
+async def stopmimic(interaction: discord.Interaction):
+    if interaction.user.id != OWNER_ID and interaction.user.id not in VIP_IDS:
+        await interaction.response.send_message("Only VIPs can use this.", ephemeral=True)
+        return
+
+    global mimic_target
+    mimic_target = None
+    await interaction.response.send_message("Mimic stopped.", ephemeral=True)
+
+# !roast - anyone can use, harsh for normal, light for VIPs, can't roast owner
 @bot.command()
 async def roast(ctx, member: discord.Member = None):
     if member is None:
         member = ctx.author
 
-    # Block roasting owner
     if member.id == OWNER_ID:
         await ctx.send("Can't roast the owner! 👑")
         return
 
-    # Choose roast list based on target
+    harsh = [
+        "{user}, bro your aura is negative 1000, touch grass.",
+        "{user}, you give NPC energy fr.",
+        "{user}, your jokes are drier than Sahara.",
+        "{user}, bro tried to rizz but got curved.",
+        "{user}, your fit is so mid even Wish said no.",
+        "{user}, you're a 404 — not found.",
+        "{user}, your vibe is so off Wi-Fi disconnected.",
+        "{user}, bro you're built like a mod — zero aura.",
+        "{user}, your playlist is trash.",
+        "{user}, you're low battery 24/7."
+    ]
+
+    light = [
+        "{user}, bro your aura is kinda lowkey mid.",
+        "{user}, you're giving background character vibes.",
+        "{user}, your jokes are dry ngl.",
+        "{user}, bro tried to rizz but nah.",
+        "{user}, your fit is mid, step up.",
+        "{user}, you're NPC energy.",
+        "{user}, your vibe is off a bit.",
+        "{user}, bro you're sidekick energy.",
+        "{user}, your playlist needs work.",
+        "{user}, you're low battery mode."
+    ]
+
     if member.id in VIP_IDS:
-        roast_text = random.choice(light_roasts).format(user=member.mention)
+        roast_text = random.choice(light).format(user=member.mention)
     else:
-        roast_text = random.choice(harsh_roasts).format(user=member.mention)
+        roast_text = random.choice(harsh).format(user=member.mention)
 
     await ctx.send(roast_text)
 
 # /say - VIPs only
-@bot.tree.command(name="say", description="Make bot say something (VIPs only)")
+@bot.tree.command(name="say", description="Bot says something (VIPs only)")
 async def say(interaction: discord.Interaction, text: str):
     if interaction.user.id != OWNER_ID and interaction.user.id not in VIP_IDS:
         await interaction.response.send_message("Only VIPs can use this.", ephemeral=True)
         return
     await interaction.channel.send(text)
-    await interaction.response.send_message("Sent silently.", ephemeral=True)
+    await interaction.response.send_message("Sent.", ephemeral=True)
 
 # /dm - VIPs only
 @bot.tree.command(name="dm", description="Send DM to user (VIPs only)")
@@ -130,12 +150,12 @@ async def dm(interaction: discord.Interaction, member: discord.Member, text: str
 
     try:
         await member.send(text)
-        await interaction.response.send_message(f"DM sent to {member.mention} silently.", ephemeral=True)
+        await interaction.response.send_message(f"DM sent to {member.mention}.", ephemeral=True)
     except:
         await interaction.response.send_message(f"Failed to DM {member.mention} (DMs closed?).", ephemeral=True)
 
 # /viplist - public
-@bot.tree.command(name="viplist", description="Show current VIP list (public)")
+@bot.tree.command(name="viplist", description="Show VIP list (public)")
 async def viplist(interaction: discord.Interaction):
     if not VIP_IDS:
         await interaction.response.send_message("No VIPs yet! 👑", ephemeral=False)
@@ -145,7 +165,7 @@ async def viplist(interaction: discord.Interaction):
     await interaction.response.send_message(f"**VIPs:** 👑\n" + "\n".join(mentions), ephemeral=False)
 
 # /vipadd - owner only
-@bot.tree.command(name="vipadd", description="Add user to VIP list (owner only)")
+@bot.tree.command(name="vipadd", description="Add VIP (owner only)")
 async def vipadd(interaction: discord.Interaction, member: discord.Member):
     if interaction.user.id != OWNER_ID:
         await interaction.response.send_message("Only owner can add VIPs.", ephemeral=True)
@@ -163,7 +183,7 @@ async def vipadd(interaction: discord.Interaction, member: discord.Member):
     await interaction.response.send_message(f"{member.mention} added to VIPs! 👑", ephemeral=True)
 
 # /vipremove - owner only
-@bot.tree.command(name="vipremove", description="Remove user from VIP list (owner only)")
+@bot.tree.command(name="vipremove", description="Remove VIP (owner only)")
 async def vipremove(interaction: discord.Interaction, member: discord.Member):
     if interaction.user.id != OWNER_ID:
         await interaction.response.send_message("Only owner can remove VIPs.", ephemeral=True)
@@ -189,7 +209,7 @@ def run_discord_bot():
 
 threading.Thread(target=run_discord_bot, daemon=True).start()
 
-# Flask for Render keep-alive
+# Flask keep-alive
 app = Flask(__name__)
 
 @app.route("/")
