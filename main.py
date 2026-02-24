@@ -8,6 +8,7 @@ import asyncio
 import time
 
 OWNER_ID = 864380109682900992
+GF_ID = 1425090711019192434
 
 VIP_IDS = []
 
@@ -274,15 +275,24 @@ async def ship(interaction: discord.Interaction, user1: discord.Member, user2: d
         user2 = user1
         user1 = interaction.user
 
-    percentage = random.randint(0, 100)
-    if percentage >= 90:
-        comment = "Soulmates fr 🔥"
-    elif percentage >= 70:
-        comment = "Solid vibes ❤️"
-    elif percentage >= 40:
-        comment = "Mid ship ngl 😭"
+    u1, u2 = user1.id, user2.id
+
+    if (u1 == OWNER_ID and u2 == GF_ID) or (u1 == GF_ID and u2 == OWNER_ID):
+        percentage = 100
+        comment = "Perfect match! Power couple vibes 🔥❤️"
+    elif OWNER_ID in (u1, u2) or GF_ID in (u1, u2):
+        percentage = random.randint(0, 5)
+        comment = "Nah... not happening. Chemistry = 404 💀"
     else:
-        comment = "Divorce speedrun any% 💀"
+        percentage = random.randint(0, 100)
+        if percentage >= 90:
+            comment = "Soulmates fr 🔥"
+        elif percentage >= 70:
+            comment = "Solid vibes ❤️"
+        elif percentage >= 40:
+            comment = "Mid ship ngl 😭"
+        else:
+            comment = "Divorce speedrun any% 💀"
 
     embed = discord.Embed(
         title="💘 Shipping Meter",
@@ -328,91 +338,6 @@ async def dice(interaction: discord.Interaction, sides: int = 6):
         sides = 6
     result = random.randint(1, sides)
     await interaction.response.send_message(f"🎲 Rolled **{sides}-sided die**: **{result}**")
-
-@bot.tree.command(name="rps", description="Play rock paper scissors")
-async def rps(interaction: discord.Interaction, member: discord.Member, choice: str):
-    choices = ["rock", "paper", "scissors"]
-    if choice.lower() not in choices:
-        await interaction.response.send_message("Choose rock, paper, or scissors!", ephemeral=True)
-        return
-
-    bot_choice = random.choice(choices)
-    result = "Tie!" if choice.lower() == bot_choice else (
-        "You win!" if (choice.lower() == "rock" and bot_choice == "scissors") or
-                       (choice.lower() == "paper" and bot_choice == "rock") or
-                       (choice.lower() == "scissors" and bot_choice == "paper") else "You lose!"
-    )
-
-    await interaction.response.send_message(f"You chose **{choice}**\nI chose **{bot_choice}**\n**{result}**")
-
-@bot.tree.command(name="poll", description="Create a quick poll")
-async def poll(interaction: discord.Interaction, question: str, option1: str, option2: str, option3: str = None, option4: str = None):
-    embed = discord.Embed(title="📊 Poll", description=question, color=discord.Color.blue())
-    embed.add_field(name="1️⃣", value=option1, inline=False)
-    embed.add_field(name="2️⃣", value=option2, inline=False)
-    if option3:
-        embed.add_field(name="3️⃣", value=option3, inline=False)
-    if option4:
-        embed.add_field(name="4️⃣", value=option4, inline=False)
-
-    msg = await interaction.response.send_message(embed=embed)
-    await msg.add_reaction("1️⃣")
-    await msg.add_reaction("2️⃣")
-    if option3:
-        await msg.add_reaction("3️⃣")
-    if option4:
-        await msg.add_reaction("4️⃣")
-
-@bot.tree.command(name="wouldyourather", description="Would you rather")
-async def wouldyourather(interaction: discord.Interaction, option1: str, option2: str):
-    embed = discord.Embed(title="🤔 Would You Rather", color=discord.Color.purple())
-    embed.add_field(name="Option A", value=option1, inline=False)
-    embed.add_field(name="Option B", value=option2, inline=False)
-    msg = await interaction.response.send_message(embed=embed)
-    await msg.add_reaction("🇦")
-    await msg.add_reaction("🇧")
-
-@bot.tree.command(name="truth", description="Get a truth question")
-async def truth(interaction: discord.Interaction):
-    truths = [
-        "What's your most embarrassing moment?",
-        "Who was your first crush?",
-        "What's the weirdest food you've ever eaten?",
-        "Have you ever lied to get out of trouble?"
-    ]
-    await interaction.response.send_message(f"Truth: {random.choice(truths)}")
-
-@bot.tree.command(name="dare", description="Get a dare")
-async def dare(interaction: discord.Interaction):
-    dares = [
-        "Send your last selfie in general chat",
-        "Type 'I'm a potato' in 10 different channels",
-        "Change your nickname to 'Daddy' for 10 minutes"
-    ]
-    await interaction.response.send_message(f"Dare: {random.choice(dares)}")
-
-@bot.tree.command(name="rate", description="Rate someone or something out of 10")
-async def rate(interaction: discord.Interaction, thing: str):
-    score = random.randint(0, 10)
-    comments = [
-        f"{score}/10 - mid af",
-        f"{score}/10 - fire ngl",
-        f"{score}/10 - trash",
-        f"{score}/10 - peak"
-    ]
-    await interaction.response.send_message(f"{thing}: **{random.choice(comments)}**")
-
-@bot.tree.command(name="hug", description="Hug someone")
-async def hug(interaction: discord.Interaction, member: discord.Member):
-    await interaction.response.send_message(f"{interaction.user.mention} hugged {member.mention} 🤗")
-
-@bot.tree.command(name="slap", description="Slap someone")
-async def slap(interaction: discord.Interaction, member: discord.Member):
-    await interaction.response.send_message(f"{interaction.user.mention} slapped {member.mention} 👋")
-
-@bot.tree.command(name="bonk", description="Bonk someone")
-async def bonk(interaction: discord.Interaction, member: discord.Member):
-    await interaction.response.send_message(f"{interaction.user.mention} bonked {member.mention} 🔨")
 
 def run_discord_bot():
     time.sleep(5)
