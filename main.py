@@ -48,7 +48,7 @@ def is_vip(interaction):
     return interaction.user.id == OWNER_ID or interaction.user.id in VIP_IDS
 
 # ────────────────────────────────────────────────
-# 80 BRUTAL ROASTS (no repeats, savage for everyone except gf)
+# 80 BRUTAL ROASTS (savage for all except gf protected)
 # ────────────────────────────────────────────────
 
 roasts = [
@@ -65,94 +65,96 @@ roasts = [
     "{user}, your birth certificate is an apology letter from the condom factory",
     "{user}, you're so useless even your parasites are looking for a better host",
     "{user}, your vibe is so negative even black holes said 'too much'",
-    "{user}", you're the reason warning labels exist on everything",
-    "{user}", your rizz is so bad even NPCs reject you in video games",
-    "{user}", you're giving 'main character syndrome' but you're an extra with no lines",
-    "{user}", your aura is so mid even Switzerland called you neutral",
-    "{user}", you're the type of person who gets left on read by their own reflection",
-    "{user}", your life is so boring even Wikipedia skipped your page",
-    "{user}", you're so forgettable even amnesia patients remember you as 'that guy'",
-    "{user}", your personality is so basic even default settings said 'step up'",
-    "{user}", you're the human version of Comic Sans — nobody takes you seriously",
-    "{user}", your drip is so bad even rain avoids you",
-    "{user}", you're the reason 'seen' messages have trust issues",
-    "{user}", bro your game is so weak even tutorial mode beat you",
-    "{user}", your energy is so low even ghosts have more aura",
-    "{user}", you're the reason why 'no cap' needs a cap",
-    "{user}", your face card declined harder than your life choices",
-    "{user}", you're giving expired milk energy — sour and unwanted",
-    "{user}", your chat is so dead even zombies left the group",
-    "{user}", bro you're built like a participation trophy — nobody actually wants you",
-    "{user}", your vibe is so off even GPS rerouted the entire planet",
-    "{user}", you're the type to get ghosted by your own shadow",
-    "{user}", your aura is so negative it's classified as a black hole",
-    "{user}", your personality is so mid even average said 'step aside'",
-    "{user}", you're giving 'I use light mode' energy — cursed",
-    "{user}", bro your rizz is so bad even mirrors say no",
-    "{user}", your life is so boring even Wikipedia skipped your page",
-    "{user}", you're the reason why 'seen' has 3 dots of disappointment",
-    "{user}", bro your fit is so bad even thrift stores rejected it",
-    "{user}", your energy is so low even batteries sued you for defamation",
-    "{user}", you're the type to get left on read by your own group chat",
-    "{user}", bro your vibe is so mid even mid said 'damn'",
-    "{user}", your aura is so weak even whispers ignore you",
-    "{user}", your personality is so basic even IKEA has more character",
-    "{user}", you're giving 'default notification sound' energy",
-    "{user}", bro your roasts are so weak even bread laughed",
-    "{user}", your life is so mid even average said 'step aside'",
-    "{user}", you're the type to get ghosted by your own notifications",
-    "{user}", bro your energy is so low even ghosts said 'too dead'",
-    "{user}", you're the reason why 'seen' needs therapy",
-    "{user}", bro your aura is so negative even magnets repelled you",
-    "{user}", you're giving 'I use default skin' energy",
-    "{user}", bro your rizz is so bad even autocorrect said no",
-    "{user}", your jokes are so dry even desert called jealous",
-    "{user}", you're the human version of a loading screen — forever waiting",
-    "{user}", bro your fit is so bad even fashion police arrested it",
-    "{user}", your vibe is so off even GPS gave up",
-    "{user}", you're giving 'I'm the main character' energy… in a tutorial",
-    "{user}", bro your chat is so dead even zombies left",
-    "{user}", your energy is so low even ghosts said 'too dead'",
-    "{user}", you're the reason why 'seen' has trust issues",
-    "{user}", bro your aura is so weak even whispers ignore you",
-    "{user}", your personality is so mid even middle child said no",
-    "{user}", you're giving 'default notification sound' energy",
-    "{user}", bro your roasts are so weak even bread laughed",
-    "{user}", your life is so mid even average said 'step aside'",
-    "{user}", you're the type to get ghosted by your own notifications",
-    "{user}", bro your energy is so low even ghosts said 'too dead'",
-    "{user}", you're the reason why 'seen' needs therapy",
-    "{user}", bro your aura is so negative even magnets repelled you",
-    "{user}", you're giving 'I use default skin' energy",
-    "{user}", bro your rizz is so bad even autocorrect said no",
-    "{user}", your jokes are so dry even desert called jealous",
-    "{user}", you're the human version of a loading screen — forever waiting",
-    "{user}", bro your fit is so bad even fashion police arrested it",
-    "{user}", your vibe is so off even GPS gave up",
-    "{user}", you're giving 'I'm the main character' energy… in a tutorial",
-    "{user}", bro your chat is so dead even zombies left",
-    "{user}", your energy is so low even ghosts said 'too dead'",
-    "{user}", you're the reason why 'seen' has trust issues"
+    "{user}, you're the reason warning labels exist on everything",
+    "{user}, your rizz is so bad even NPCs reject you in video games",
+    "{user}, you're giving 'main character syndrome' but you're an extra with no lines",
+    "{user}, your aura is so mid even Switzerland called you neutral",
+    "{user}, you're the type of person who gets left on read by their own reflection",
+    "{user}, your life is so boring even Wikipedia skipped your page",
+    "{user}, you're so forgettable even amnesia patients remember you as 'that guy'",
+    "{user}, your personality is so basic even default settings said 'step up'",
+    "{user}, you're the human version of Comic Sans — nobody takes you seriously",
+    "{user}, your drip is so bad even rain avoids you",
+    "{user}, you're the reason 'seen' messages have trust issues",
+    "{user}, bro your game is so weak even tutorial mode beat you",
+    "{user}, your energy is so low even ghosts have more aura",
+    "{user}, you're the reason why 'no cap' needs a cap",
+    "{user}, your face card declined harder than your life choices",
+    "{user}, you're giving expired milk energy — sour and unwanted",
+    "{user}, your chat is so dead even zombies left the group",
+    "{user}, bro you're built like a participation trophy — nobody actually wants you",
+    "{user}, your vibe is so off even GPS rerouted the entire planet",
+    "{user}, you're the type to get ghosted by your own shadow",
+    "{user}, your aura is so negative it's classified as a black hole",
+    "{user}, your personality is so mid even average said 'step aside'",
+    "{user}, you're giving 'I use light mode' energy — cursed",
+    "{user}, bro your rizz is so bad even mirrors say no",
+    "{user}, your life is so boring even Wikipedia skipped your page",
+    "{user}, you're the reason why 'seen' has 3 dots of disappointment",
+    "{user}, bro your fit is so bad even thrift stores rejected it",
+    "{user}, your energy is so low even batteries sued you for defamation",
+    "{user}, you're the type to get left on read by your own group chat",
+    "{user}, bro your vibe is so mid even mid said 'damn'",
+    "{user}, your aura is so weak even whispers ignore you",
+    "{user}, your personality is so basic even IKEA has more character",
+    "{user}, you're giving 'default notification sound' energy",
+    "{user}, bro your roasts are so weak even bread laughed",
+    "{user}, your life is so mid even average said 'step aside'",
+    "{user}, you're the type to get ghosted by your own notifications",
+    "{user}, bro your energy is so low even ghosts said 'too dead'",
+    "{user}, you're the reason why 'seen' needs therapy",
+    "{user}, bro your aura is so negative even magnets repelled you",
+    "{user}, you're giving 'I use default skin' energy",
+    "{user}, bro your rizz is so bad even autocorrect said no",
+    "{user}, your jokes are so dry even desert called jealous",
+    "{user}, you're the human version of a loading screen — forever waiting",
+    "{user}, bro your fit is so bad even fashion police arrested it",
+    "{user}, your vibe is so off even GPS gave up",
+    "{user}, you're giving 'I'm the main character' energy… in a tutorial",
+    "{user}, bro your chat is so dead even zombies left",
+    "{user}, your energy is so low even ghosts said 'too dead'",
+    "{user}, you're the reason why 'seen' has trust issues",
+    "{user}, bro your aura is so weak even whispers ignore you",
+    "{user}, your personality is so mid even middle child said no",
+    "{user}, you're giving 'default notification sound' energy",
+    "{user}, bro your roasts are so weak even bread laughed",
+    "{user}, your life is so mid even average said 'step aside'",
+    "{user}, you're the type to get ghosted by your own notifications",
+    "{user}, bro your energy is so low even ghosts said 'too dead'",
+    "{user}, you're the reason why 'seen' needs therapy",
+    "{user}, bro your aura is so negative even magnets repelled you",
+    "{user}, you're giving 'I use default skin' energy",
+    "{user}, bro your rizz is so bad even autocorrect said no",
+    "{user}, your jokes are so dry even desert called jealous",
+    "{user}, you're the human version of a loading screen — forever waiting",
+    "{user}, bro your fit is so bad even fashion police arrested it",
+    "{user}, your vibe is so off even GPS gave up",
+    "{user}, you're giving 'I'm the main character' energy… in a tutorial",
+    "{user}, bro your chat is so dead even zombies left",
+    "{user}, your energy is so low even ghosts said 'too dead'",
+    "{user}, you're the reason why 'seen' has trust issues",
+    "{user}, bro your aura is so weak even whispers ignore you",
+    "{user}, your personality is so mid even middle child said no"
 ]
 
 # ────────────────────────────────────────────────
-#  !help - beautiful embed
+#  !help - beautiful embed with all features
 # ────────────────────────────────────────────────
 
 @bot.command()
 async def help(ctx):
     embed = discord.Embed(
         title="✦ Phantom Daviccino Help ✦",
-        description="Your personal chaos & fun bot made with ❤️ by **Kevin**",
+        description="Chaos, fun & love bot made with ❤️ by **Kevin**",
         color=0xff3366
     )
 
-    embed.set_thumbnail(url="https://i.imgur.com/0X0X0X0.png")  # optional icon
+    embed.set_thumbnail(url="https://i.imgur.com/0X0X0X0.png")  # change to your bot icon if you have one
 
     embed.add_field(
         name="🔥 Core & VIP Commands",
         value="```"
-              "!roast @user       → savage roast (harsh for everyone)\n"
+              "!roast @user       → savage roast (brutal for everyone except gf)\n"
               "/say text           → bot says anything (VIPs only)\n"
               "/dm @user text      → bot DMs someone (VIPs only)\n"
               "/mimic @user msg    → speak as someone (VIPs only)\n"
@@ -170,28 +172,13 @@ async def help(ctx):
         inline=False
     )
 
-    embed.add_field(
-        name="🎲 Games & Random",
-        value="```"
-              "/8ball question     → magic 8-ball\n"
-              "/coinflip           → heads or tails\n"
-              "/dice [sides]       → roll dice\n"
-              "/rps @user choice   → rock paper scissors\n"
-              "/poll \"q\" opt1 opt2 → quick poll\n"
-              "/wouldyourather A OR B → would you rather\n"
-              "/truth /dare        → party game\n"
-              "/rate @user/thing   → rate out of 10\n"
-              "/hug /slap /bonk @user → fun reactions```",
-        inline=False
-    )
-
     embed.set_footer(text="Made by Kevin • Phantom Daviccino 🔥 • 2026")
     embed.timestamp = discord.utils.utcnow()
 
     await ctx.send(embed=embed)
 
 # ────────────────────────────────────────────────
-#  Roast (harsh for all except gf protected)
+#  Roast - brutal for all except gf protected
 # ────────────────────────────────────────────────
 
 @bot.command()
@@ -207,14 +194,28 @@ async def roast(ctx, member: discord.Member = None):
         await ctx.send("Can't roast the queen! She's perfect ❤️✨")
         return
 
-    # 80 brutal roasts
     roast_text = random.choice(roasts).format(user=member.mention)
     await ctx.send(roast_text)
 
-# Paste the rest of your commands here (say, dm, vipadd, vipremove, viplist, mimic, ship, compliment, 8ball, coinflip, dice, etc.)
-# ... (keep them from your previous code)
+# ────────────────────────────────────────────────
+#  Keep your other commands here (say, dm, vipadd, vipremove, viplist, mimic, etc.)
+# ────────────────────────────────────────────────
 
-# Run bot & Flask (keep this part the same)
+# Example placeholder for other commands (paste your existing ones)
+@bot.tree.command(name="say", description="Bot says something (VIPs only)")
+async def say(interaction: discord.Interaction, text: str):
+    if interaction.user.id != OWNER_ID and interaction.user.id not in VIP_IDS:
+        await interaction.response.send_message("Only VIPs can use this.", ephemeral=True)
+        return
+    await interaction.channel.send(text)
+    await interaction.response.send_message("Sent.", ephemeral=True)
+
+# ... add all your other slash commands (vipadd, vipremove, viplist, mimic, etc.) here
+
+# ────────────────────────────────────────────────
+#  Run bot & Flask
+# ────────────────────────────────────────────────
+
 def run_discord_bot():
     time.sleep(5)
     loop = asyncio.new_event_loop()
