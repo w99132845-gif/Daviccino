@@ -105,25 +105,6 @@ roasts = [
     "{user}, your energy is so low even ghosts said 'too dead'",
     "{user}, you're the reason why 'seen' has trust issues",
     "{user}, bro your aura is so weak even whispers ignore you",
-    "{user}, your personality is so mid even middle child said no",
-    "{user}, you're giving 'default notification sound' energy",
-    "{user}, bro your roasts are so weak even bread laughed",
-    "{user}, your life is so mid even average said 'step aside'",
-    "{user}, you're the type to get ghosted by your own notifications",
-    "{user}, bro your energy is so low even ghosts said 'too dead'",
-    "{user}, you're the reason why 'seen' needs therapy",
-    "{user}, bro your aura is so negative even magnets repelled you",
-    "{user}, you're giving 'I use default skin' energy",
-    "{user}, bro your rizz is so bad even autocorrect said no",
-    "{user}, your jokes are so dry even desert called jealous",
-    "{user}, you're the human version of a loading screen — forever waiting",
-    "{user}, bro your fit is so bad even fashion police arrested it",
-    "{user}, your vibe is so off even GPS gave up",
-    "{user}, you're giving 'I'm the main character' energy… in a tutorial",
-    "{user}, bro your chat is so dead even zombies left",
-    "{user}, your energy is so low even ghosts said 'too dead'",
-    "{user}, you're the reason why 'seen' has trust issues",
-    "{user}, bro your aura is so weak even whispers ignore you",
     "{user}, your personality is so mid even middle child said no"
 ]
 
@@ -147,6 +128,23 @@ async def help_command(ctx):
               "/vipadd @user       → add VIP (owner only)\n"
               "/vipremove @user    → remove VIP (owner only)\n"
               "/viplist            → show VIPs (public)```",
+        inline=False
+    )
+
+    embed.add_field(
+        name="💘 Fun & Games",
+        value="```"
+              "/ship @u1 @u2       → shipping meter\n"
+              "/compliment @user   → wholesome vibes\n"
+              "/8ball question     → magic 8-ball\n"
+              "/coinflip           → heads or tails\n"
+              "/dice [sides]       → roll dice\n"
+              "/rps @user choice   → rock paper scissors\n"
+              "/poll \"q\" opts     → quick poll\n"
+              "/wouldyourather A OR B → would you rather\n"
+              "/truth /dare        → party game\n"
+              "/rate @user/thing   → rate out of 10\n"
+              "/hug /slap /bonk @user → fun reactions```",
         inline=False
     )
 
@@ -251,6 +249,76 @@ async def vipremove(interaction: discord.Interaction, member: discord.Member):
 
     VIP_IDS.remove(member.id)
     await interaction.response.send_message(f"{member.mention} removed from VIPs.", ephemeral=True)
+
+@bot.tree.command(name="ship", description="Ship two people")
+async def ship(interaction: discord.Interaction, user1: discord.Member, user2: discord.Member = None):
+    if user2 is None:
+        user2 = user1
+        user1 = interaction.user
+
+    u1, u2 = user1.id, user2.id
+
+    if (u1 == OWNER_ID and u2 == GF_ID) or (u1 == GF_ID and u2 == OWNER_ID):
+        percentage = 100
+        comment = "Perfect match! Power couple vibes 🔥❤️"
+    elif OWNER_ID in (u1, u2) or GF_ID in (u1, u2):
+        percentage = random.randint(0, 5)
+        comment = "Nah... not happening. Chemistry = 404 💀"
+    else:
+        percentage = random.randint(0, 100)
+        if percentage >= 90:
+            comment = "Soulmates fr 🔥"
+        elif percentage >= 70:
+            comment = "Solid vibes ❤️"
+        elif percentage >= 40:
+            comment = "Mid ship ngl 😭"
+        else:
+            comment = "Divorce speedrun any% 💀"
+
+    embed = discord.Embed(
+        title="💘 Shipping Meter",
+        description=f"{user1.mention} x {user2.mention}\n**{percentage}%** {comment}",
+        color=discord.Color.green() if percentage >= 70 else discord.Color.red()
+    )
+    await interaction.response.send_message(embed=embed)
+
+@bot.tree.command(name="compliment", description="Give someone a compliment")
+async def compliment(interaction: discord.Interaction, member: discord.Member):
+    replies = [
+        "You're actually kinda cool ngl.",
+        "Your aura is lowkey fire today.",
+        "You're giving main character energy fr.",
+        "Bro you're underrated, keep shining."
+    ]
+    await interaction.response.send_message(random.choice(replies))
+
+@bot.tree.command(name="8ball", description="Ask the magic 8-ball")
+async def eightball(interaction: discord.Interaction, question: str):
+    replies = [
+        "Yes, facts.",
+        "Nah, cope.",
+        "100% happening.",
+        "Signs point to no",
+        "Ask again later.",
+        "Definitely not.",
+        "Outlook good.",
+        "My sources say no.",
+        "Yes, but touch grass first.",
+        "Reply hazy, try again."
+    ]
+    await interaction.response.send_message(f"🎱 {question}\n**Answer:** {random.choice(replies)}")
+
+@bot.tree.command(name="coinflip", description="Flip a coin")
+async def coinflip(interaction: discord.Interaction):
+    result = random.choice(["Heads 🪙", "Tails 🪙"])
+    await interaction.response.send_message(f"Coinflip: **{result}**")
+
+@bot.tree.command(name="dice", description="Roll a die (default 6)")
+async def dice(interaction: discord.Interaction, sides: int = 6):
+    if sides < 2:
+        sides = 6
+    result = random.randint(1, sides)
+    await interaction.response.send_message(f"🎲 Rolled **{sides}-sided die**: **{result}**")
 
 def run_discord_bot():
     time.sleep(5)
