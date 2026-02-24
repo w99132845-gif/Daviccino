@@ -142,7 +142,9 @@ async def help_command(ctx):
               "/rps @user choice   → rock paper scissors\n"
               "/poll \"q\" opts     → quick poll\n"
               "/wouldyourather A OR B → would you rather\n"
-              "/truth /dare        → party game\n"
+              "/truth              → random truth question\n"
+              "/dare               → random dare\n"
+              "/randomfact         → random useless fact\n"
               "/rate @user/thing   → rate out of 10\n"
               "/hug /slap /bonk @user → fun reactions```",
         inline=False
@@ -152,6 +154,60 @@ async def help_command(ctx):
     embed.timestamp = discord.utils.utcnow()
 
     await ctx.send(embed=embed)
+
+@bot.event
+async def on_message(message):
+    if message.author.bot:
+        return
+
+    # Reply with help embed when bot is tagged/mentioned
+    if bot.user in message.mentions:
+        embed = discord.Embed(
+            title="✦ Phantom Daviccino Help ✦",
+            description="Chaos, fun & love bot",
+            color=0xff3366
+        )
+
+        embed.set_thumbnail(url="https://i.imgur.com/7L0fK9L.png")
+
+        embed.add_field(
+            name="🔥 Core & VIP Commands",
+            value="```"
+                  "!roast @user       → savage roast\n"
+                  "/say text           → bot says anything (VIPs only)\n"
+                  "/dm @user text      → bot DMs someone (VIPs only)\n"
+                  "/mimic @user msg    → speak as someone (VIPs only)\n"
+                  "/vipadd @user       → add VIP (owner only)\n"
+                  "/vipremove @user    → remove VIP (owner only)\n"
+                  "/viplist            → show VIPs (public)```",
+            inline=False
+        )
+
+        embed.add_field(
+            name="💘 Fun & Games",
+            value="```"
+                  "/ship @u1 @u2       → shipping meter\n"
+                  "/compliment @user   → wholesome vibes\n"
+                  "/8ball question     → magic 8-ball\n"
+                  "/coinflip           → heads or tails\n"
+                  "/dice [sides]       → roll dice\n"
+                  "/rps @user choice   → rock paper scissors\n"
+                  "/poll \"q\" opts     → quick poll\n"
+                  "/wouldyourather A OR B → would you rather\n"
+                  "/truth              → random truth question\n"
+                  "/dare               → random dare\n"
+                  "/randomfact         → random useless fact\n"
+                  "/rate @user/thing   → rate out of 10\n"
+                  "/hug /slap /bonk @user → fun reactions```",
+            inline=False
+        )
+
+        embed.set_footer(text="Made by Kevin • Phantom Daviccino 🔥 • 2026")
+        embed.timestamp = discord.utils.utcnow()
+
+        await message.channel.send(embed=embed)
+
+    await bot.process_commands(message)
 
 @bot.command()
 async def roast(ctx, member: discord.Member = None):
@@ -319,6 +375,54 @@ async def dice(interaction: discord.Interaction, sides: int = 6):
         sides = 6
     result = random.randint(1, sides)
     await interaction.response.send_message(f"🎲 Rolled **{sides}-sided die**: **{result}**")
+
+@bot.tree.command(name="truth", description="Get a random truth question")
+async def truth(interaction: discord.Interaction):
+    truths = [
+        "What's the most embarrassing thing you've ever done?",
+        "Who was your first crush and why?",
+        "What's the weirdest food combo you've tried?",
+        "Have you ever lied to get out of trouble?",
+        "What's your biggest fear right now?",
+        "Who's the last person you stalked on social media?",
+        "What's the dumbest thing you've done for a dare?",
+        "Have you ever had a crush on a teacher?",
+        "What's the most illegal thing you've ever done?",
+        "Who in this server would you date if you had to pick?"
+    ]
+    await interaction.response.send_message(f"Truth: **{random.choice(truths)}**")
+
+@bot.tree.command(name="dare", description="Get a random dare")
+async def dare(interaction: discord.Interaction):
+    dares = [
+        "Send your last selfie in general chat",
+        "Type 'I'm a potato' in 5 different channels",
+        "Change your nickname to 'Daddy' for 10 minutes",
+        "Send 'I love you' to the last person you DM'd",
+        "Post 'Rate my fit' with your current pfp",
+        "Sing the chorus of your current favorite song in VC",
+        "Send a voice message saying 'I'm gay'",
+        "DM the person above you 'You're cute'",
+        "React with 😂 to the last 10 messages in general",
+        "Post 'Who wants to date me?' in general chat"
+    ]
+    await interaction.response.send_message(f"Dare: **{random.choice(dares)}**")
+
+@bot.tree.command(name="randomfact", description="Get a random useless fact")
+async def randomfact(interaction: discord.Interaction):
+    facts = [
+        "A flock of crows is called a murder.",
+        "Octopuses have three hearts.",
+        "Bananas are berries, but strawberries aren't.",
+        "The unicorn is the national animal of Scotland.",
+        "Honey never spoils.",
+        "A group of flamingos is called a flamboyance.",
+        "Wombat poop is cube-shaped.",
+        "The shortest war in history lasted 38 minutes.",
+        "A flock of crows is called a murder.",
+        "The Eiffel Tower can be 15 cm taller during the summer."
+    ]
+    await interaction.response.send_message(f"Random fact: {random.choice(facts)}")
 
 def run_discord_bot():
     time.sleep(5)
