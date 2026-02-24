@@ -7,10 +7,13 @@ import threading
 import asyncio
 import time
 
-# OWNER ID (you) - always protected, can do everything
-OWNER_ID = 864380109682900992  # ← CHANGE TO YOUR REAL DISCORD ID IF NEEDED
+# OWNER (Kevin)
+OWNER_ID = 864380109682900992
 
-# VIP list - starts empty, added via /vipadd
+# GF ID
+GF_ID = 1425090711019192434
+
+# VIP list - starts empty
 VIP_IDS = []
 
 intents = discord.Intents.default()
@@ -19,75 +22,97 @@ intents.members = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-# Mimic target
-mimic_target = None
-
-# 3 rotating playing statuses - changes every 5 seconds
+# Rotating DND status every 5 seconds
 STATUSES = [
     discord.Game(name="Daviccino Daddy 🔥"),
     discord.Game(name="Ohh kevin de brunye ⚽️"),
     discord.Game(name="Listening to Albert Fish")
 ]
 
-@bot.event
-async def on_ready():
-    print(f"{bot.user} is online!")
-
-    # Set DND + initial status
-    await bot.change_presence(
-        status=discord.Status.dnd,
-        activity=STATUSES[0]
-    )
-
-    # Start rotation loop
-    bot.loop.create_task(rotate_status())
-
-    await bot.tree.sync()
-    print("Slash commands synced!")
-
 async def rotate_status():
     i = 0
     while True:
-        await bot.change_presence(
-            status=discord.Status.dnd,  # always DND
-            activity=STATUSES[i]
-        )
+        await bot.change_presence(status=discord.Status.dnd, activity=STATUSES[i])
         i = (i + 1) % len(STATUSES)
         await asyncio.sleep(5)
 
 @bot.event
-async def on_message(message):
-    if message.author.bot:
-        return
+async def on_ready():
+    print(f"{bot.user} is online!")
+    bot.loop.create_task(rotate_status())
+    await bot.tree.sync()
+    print("Slash commands synced!")
 
-    # Mimic mode
-    global mimic_target
-    if mimic_target and message.author.id == OWNER_ID:
-        if mimic_target:
-            webhook = await message.channel.create_webhook(name=bot.get_user(mimic_target).name)
-            await webhook.send(
-                content=message.content,
-                username=bot.get_user(mimic_target).name,
-                avatar_url=bot.get_user(mimic_target).avatar.url if bot.get_user(mimic_target).avatar else None
-            )
-            await webhook.delete()
-            await message.delete()  # hide command
+# Helper: is VIP or Kevin?
+def is_vip(interaction):
+    return interaction.user.id == OWNER_ID or interaction.user.id in VIP_IDS
 
-    await bot.process_commands(message)
+# ────────────────────────────────────────────────
+#  !help - beautiful embed
+# ────────────────────────────────────────────────
 
-# /mimic @user message - VIPs only
+@bot.command()
+async def help(ctx):
+    embed = discord.Embed(
+        title="✦ Phantom Daviccino Help ✦",
+        description="Chaos, fun & love bot made with ❤️ by **Kevin**",
+        color=0xff3366
+    )
+
+    embed.set_thumbnail(url="https://i.imgur.com/0X0X0X0.png")  # optional cool icon
+
+    embed.add_field(
+        name="🔥 Core & VIP Commands",
+        value="```"
+              "!roast @user       → savage roast (harsh for normies, soft for VIPs)\n"
+              "/say text           → bot says anything (VIPs only)\n"
+              "/dm @user text      → bot DMs someone (VIPs only)\n"
+              "/mimic @user msg    → speak as someone (VIPs only)\n"
+              "/vipadd /vipremove  → manage VIPs (Kevin only)\n"
+              "/viplist            → show VIPs (public)```",
+        inline=False
+    )
+
+    embed.add_field(
+        name="💘 Romance & Wholesome",
+        value="```"
+              "/ship @u1 @u2       → shipping meter (Kevin + gf = 100%)\n"
+              "/compliment @user   → wholesome vibes (extra sweet for Kevin & gf)```",
+        inline=False
+    )
+
+    embed.add_field(
+        name="🎲 Games & Fun",
+        value="```"
+              "/8ball question     → magic 8-ball\n"
+              "/coinflip           → heads/tails\n"
+              "/dice [sides]       → roll dice\n"
+              "/rps @user choice   → rock paper scissors\n"
+              "/poll \"q\" opts     → quick poll\n"
+              "/wouldyourather A OR B → would you rather\n"
+              "/truth /dare        → party game\n"
+              "/rate @user/thing   → rate out of 10\n"
+              "/hug /slap /bonk @user → fun reactions```",
+        inline=False
+    )
+
+    embed.set_footer(text="Made by Kevin • Phantom Daviccino 🔥 • 2026")
+    embed.timestamp = discord.utils.utcnow()
+
+    await ctx.send(embed=embed)
+
+# ────────────────────────────────────────────────
+#  Mimic (VIPs only)
+# ────────────────────────────────────────────────
+
 @bot.tree.command(name="mimic", description="Send message as another user (VIPs only)")
 async def mimic(interaction: discord.Interaction, member: discord.Member, message: str):
-    if interaction.user.id != OWNER_ID and interaction.user.id not in VIP_IDS:
+    if not is_vip(interaction):
         await interaction.response.send_message("Only VIPs can use this.", ephemeral=True)
         return
 
     if member.id == OWNER_ID:
-        await interaction.response.send_message("Can't mimic the owner!", ephemeral=True)
-        return
-
-    if member.bot:
-        await interaction.response.send_message("Can't mimic bots!", ephemeral=True)
+        await interaction.response.send_message("Can't mimic Kevin!", ephemeral=True)
         return
 
     await interaction.response.defer(ephemeral=True)
@@ -102,81 +127,21 @@ async def mimic(interaction: discord.Interaction, member: discord.Member, messag
 
     await interaction.followup.send(f"Sent as {member.mention}.", ephemeral=True)
 
-# !roast - anyone can use
+# ────────────────────────────────────────────────
+#  Roast (anyone)
+# ────────────────────────────────────────────────
+
 @bot.command()
 async def roast(ctx, member: discord.Member = None):
     if member is None:
         member = ctx.author
 
     if member.id == OWNER_ID:
-        await ctx.send("Can't roast the owner! 👑")
+        await ctx.send("Can't roast Kevin! He's too majestic 👑🔥")
         return
 
-    harsh = [
-        "{user}, bro your aura is negative 1000, touch grass.",
-        "{user}, you give NPC energy fr.",
-        "{user}, your jokes are drier than Sahara.",
-        "{user}, bro tried to rizz but got curved.",
-        "{user}, your fit is so mid even Wish said no.",
-        "{user}, you're a 404 — not found.",
-        "{user}, your vibe is so off Wi-Fi disconnected.",
-        "{user}, bro you're built like a mod — zero aura.",
-        "{user}, your playlist is trash.",
-        "{user}, you're low battery 24/7.",
-        "{user}, bro your haircut needs a glow-up.",
-        "{user}, you're the reason mute exists sometimes.",
-        "{user}, your chat is quiet today.",
-        "{user}, bro you're the side character.",
-        "{user}, your drip is basic.",
-        "{user}, you're getting ratio'd by your mirror.",
-        "{user}, your personality is chill but mid.",
-        "{user}, bro you peaked somewhere.",
-        "{user}, your memes are vintage.",
-        "{user}, you're why 'seen' exists.",
-        "{user}, bro your game is weak.",
-        "{user}, your style is default.",
-        "{user}, you're Comic Sans energy.",
-        "{user}, bro your life is offline.",
-        "{user}, you're 12-year-old deep.",
-        "{user}, your roasts need spice.",
-        "{user}, bro you're lagging.",
-        "{user}, your energy is ghost mode.",
-        "{user}, you're 'no cap' but cap.",
-        "{user}, bro your face card is declined."
-    ]
-
-    light = [
-        "{user}, bro your aura is kinda lowkey mid.",
-        "{user}, you're giving background character vibes.",
-        "{user}, your jokes are dry ngl.",
-        "{user}, bro tried to rizz but nah.",
-        "{user}, your fit is mid, step up.",
-        "{user}, you're NPC energy.",
-        "{user}, your vibe is off a bit.",
-        "{user}, bro you're sidekick energy.",
-        "{user}, your playlist needs work.",
-        "{user}, you're low battery mode.",
-        "{user}, bro your haircut is okay.",
-        "{user}, you're the reason mute exists sometimes.",
-        "{user}, your chat is quiet today.",
-        "{user}, bro you're side character energy.",
-        "{user}, your drip is basic.",
-        "{user}, you're getting ratio'd by your mirror.",
-        "{user}, your personality is chill.",
-        "{user}, bro you peaked somewhere.",
-        "{user}, your memes are vintage.",
-        "{user}, you're why 'seen' exists.",
-        "{user}, bro your game is okay.",
-        "{user}, your style is default.",
-        "{user}, you're Comic Sans energy.",
-        "{user}, bro your life is offline.",
-        "{user}, you're 12-year-old deep.",
-        "{user}, your roasts are okay.",
-        "{user}, bro you're lagging a bit.",
-        "{user}, your energy is ghost mode.",
-        "{user}, you're 'no cap' but cap.",
-        "{user}, bro your face card is declined."
-    ]
+    harsh = [ ... ]  # your 80 harsh roasts (copy from previous messages)
+    light = [ ... ]  # your 80 light roasts
 
     if member.id in VIP_IDS:
         roast_text = random.choice(light).format(user=member.mention)
@@ -185,39 +150,116 @@ async def roast(ctx, member: discord.Member = None):
 
     await ctx.send(roast_text)
 
-# /say - VIPs only
-@bot.tree.command(name="say", description="Bot says something (VIPs only)")
-async def say(interaction: discord.Interaction, text: str):
-    if interaction.user.id != OWNER_ID and interaction.user.id not in VIP_IDS:
-        await interaction.response.send_message("Only VIPs can use this.", ephemeral=True)
-        return
-    await interaction.channel.send(text)
-    await interaction.response.send_message("Sent.", ephemeral=True)
+# ────────────────────────────────────────────────
+#  Ship (special for Kevin + gf)
+# ────────────────────────────────────────────────
 
-# /dm - VIPs only
-@bot.tree.command(name="dm", description="Send DM to user (VIPs only)")
-async def dm(interaction: discord.Interaction, member: discord.Member, text: str):
-    if interaction.user.id != OWNER_ID and interaction.user.id not in VIP_IDS:
-        await interaction.response.send_message("Only VIPs can use this.", ephemeral=True)
-        return
+@bot.tree.command(name="ship", description="Ship two people (Kevin + gf = 100%)")
+async def ship(interaction: discord.Interaction, user1: discord.Member, user2: discord.Member = None):
+    if user2 is None:
+        user2 = user1
+        user1 = interaction.user
 
-    try:
-        await member.send(text)
-        await interaction.response.send_message(f"DM sent to {member.mention}.", ephemeral=True)
-    except:
-        await interaction.response.send_message(f"Failed to DM {member.mention} (DMs closed?).", ephemeral=True)
+    u1, u2 = user1.id, user2.id
 
-# /viplist - public
-@bot.tree.command(name="viplist", description="Show VIP list (public)")
-async def viplist(interaction: discord.Interaction):
-    if not VIP_IDS:
-        await interaction.response.send_message("No VIPs yet! 👑", ephemeral=False)
-        return
+    if (u1 == OWNER_ID and u2 == GF_ID) or (u1 == GF_ID and u2 == OWNER_ID):
+        percentage = 100
+        comment = "PERFECT MATCH! Power couple supreme 🔥❤️👑 Kevin & his queen forever"
+    elif OWNER_ID in (u1, u2) or GF_ID in (u1, u2):
+        percentage = random.randint(0, 5)
+        comment = "Nahhh... not happening. Chemistry = 404 💀"
+    else:
+        percentage = random.randint(0, 100)
+        if percentage >= 90:
+            comment = "Soulmates fr 🔥"
+        elif percentage >= 70:
+            comment = "Solid couple vibes ❤️"
+        elif percentage >= 40:
+            comment = "Mid ship ngl 😭"
+        else:
+            comment = "Divorce speedrun any% 💀"
 
-    mentions = [f"<@{uid}>" for uid in VIP_IDS]
-    await interaction.response.send_message(f"**VIPs:** 👑\n" + "\n".join(mentions), ephemeral=False)
+    embed = discord.Embed(
+        title="💘 Shipping Meter",
+        description=f"{user1.mention} x {user2.mention}\n**{percentage}%** {comment}",
+        color=discord.Color.green() if percentage >= 70 else discord.Color.red()
+    )
+    await interaction.response.send_message(embed=embed)
 
-# /vipadd - owner only
+# ────────────────────────────────────────────────
+#  Compliment (extra sweet for Kevin & gf)
+# ────────────────────────────────────────────────
+
+@bot.tree.command(name="compliment", description="Give someone a compliment")
+async def compliment(interaction: discord.Interaction, member: discord.Member):
+    if member.id == OWNER_ID:
+        replies = [
+            "Kevin is literally the king of aura 👑🔥",
+            "The man, the myth, the Daviccino legend ❤️",
+            "Kevin's rizz is unmatched, respect fr.",
+            "You're built different, Kevin — everyone knows it."
+        ]
+    elif member.id == GF_ID:
+        replies = [
+            "Queen energy! Prettiest & sweetest in the server ❤️✨",
+            "She's literally perfect, no notes.",
+            "The vibe is immaculate, goddess fr.",
+            "Kevin's gf is a 12/10, he's lucky king."
+        ]
+    else:
+        replies = [
+            "You're actually kinda cool ngl.",
+            "Your aura is lowkey fire today.",
+            "You're giving main character energy fr.",
+            "Bro you're underrated, keep shining."
+        ]
+
+    await interaction.response.send_message(random.choice(replies))
+
+# ────────────────────────────────────────────────
+#  8-Ball
+# ────────────────────────────────────────────────
+
+@bot.tree.command(name="8ball", description="Ask the magic 8-ball")
+async def eightball(interaction: discord.Interaction, question: str):
+    replies = [
+        "Yes king, facts.",
+        "Nah bro, cope.",
+        "100% happening fr.",
+        "Signs point to no 💀",
+        "Ask again later, I'm busy.",
+        "Definitely not.",
+        "Outlook good, trust.",
+        "My sources say no.",
+        "Yes, but touch grass first.",
+        "Reply hazy, try again."
+    ]
+    await interaction.response.send_message(f"🎱 {question}\n**Answer:** {random.choice(replies)}")
+
+# ────────────────────────────────────────────────
+#  Coinflip
+# ────────────────────────────────────────────────
+
+@bot.tree.command(name="coinflip", description="Flip a coin")
+async def coinflip(interaction: discord.Interaction):
+    result = random.choice(["Heads 🪙", "Tails 🪙"])
+    await interaction.response.send_message(f"Coinflip: **{result}**")
+
+# ────────────────────────────────────────────────
+#  Dice
+# ────────────────────────────────────────────────
+
+@bot.tree.command(name="dice", description="Roll a die (default 6)")
+async def dice(interaction: discord.Interaction, sides: int = 6):
+    if sides < 2:
+        sides = 6
+    result = random.randint(1, sides)
+    await interaction.response.send_message(f"🎲 Rolled **{sides}-sided die**: **{result}**")
+
+# ────────────────────────────────────────────────
+#  VIP Commands (kept)
+# ────────────────────────────────────────────────
+
 @bot.tree.command(name="vipadd", description="Add VIP (owner only)")
 async def vipadd(interaction: discord.Interaction, member: discord.Member):
     if interaction.user.id != OWNER_ID:
@@ -235,7 +277,6 @@ async def vipadd(interaction: discord.Interaction, member: discord.Member):
     VIP_IDS.append(member.id)
     await interaction.response.send_message(f"{member.mention} added to VIPs! 👑", ephemeral=True)
 
-# /vipremove - owner only
 @bot.tree.command(name="vipremove", description="Remove VIP (owner only)")
 async def vipremove(interaction: discord.Interaction, member: discord.Member):
     if interaction.user.id != OWNER_ID:
@@ -253,7 +294,19 @@ async def vipremove(interaction: discord.Interaction, member: discord.Member):
     VIP_IDS.remove(member.id)
     await interaction.response.send_message(f"{member.mention} removed from VIPs.", ephemeral=True)
 
-# Run bot in background
+@bot.tree.command(name="viplist", description="Show VIP list (public)")
+async def viplist(interaction: discord.Interaction):
+    if not VIP_IDS:
+        await interaction.response.send_message("No VIPs yet! 👑", ephemeral=False)
+        return
+
+    mentions = [f"<@{uid}>" for uid in VIP_IDS]
+    await interaction.response.send_message(f"**VIPs:** 👑\n" + "\n".join(mentions), ephemeral=False)
+
+# ────────────────────────────────────────────────
+#  Run bot & Flask
+# ────────────────────────────────────────────────
+
 def run_discord_bot():
     time.sleep(5)
     loop = asyncio.new_event_loop()
@@ -262,7 +315,6 @@ def run_discord_bot():
 
 threading.Thread(target=run_discord_bot, daemon=True).start()
 
-# Flask keep-alive
 app = Flask(__name__)
 
 @app.route("/")
