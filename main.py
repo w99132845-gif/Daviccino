@@ -7,20 +7,21 @@ import threading
 import asyncio
 import time
 
-# ────────────────────────────────────────────────
-# CONFIG
-# ────────────────────────────────────────────────
+# OWNER ID (Kevin)
+OWNER_ID = 864380109682900992
 
-OWNER_ID = 864380109682900992           # You (Kevin)
-GF_ID = 1425090711019192434             # Your girlfriend
+# GF ID
+GF_ID = 1425090711019192434
 
-VIP_IDS = []                            # Starts empty
+# VIP list - starts empty
+VIP_IDS = []
 
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
 
-bot = commands.Bot(command_prefix="!", intents=intents, help_command=None)  # ← IMPORTANT: disables built-in !help
+# Disable built-in help to avoid conflict
+bot = commands.Bot(command_prefix="!", intents=intents, help_command=None)
 
 # Rotating DND status every 5 seconds
 STATUSES = [
@@ -138,7 +139,7 @@ roasts = [
 ]
 
 # ────────────────────────────────────────────────
-#  !help - beautiful embed with all features
+#  !help - beautiful embed (now works because built-in help is disabled)
 # ────────────────────────────────────────────────
 
 @bot.command(name="help")
@@ -210,7 +211,7 @@ async def say(interaction: discord.Interaction, text: str):
     await interaction.channel.send(text)
     await interaction.response.send_message("Sent.", ephemeral=True)
 
-# ... add your other commands (vipadd, vipremove, viplist, mimic, ship, compliment, etc.) here
+# ... add your other commands (vipadd, vipremove, viplist, mimic, ship, compliment, etc.) here from your previous code
 
 # ────────────────────────────────────────────────
 #  Run bot & Flask
