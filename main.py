@@ -7,23 +7,17 @@ import threading
 import asyncio
 import time
 
-# OWNER ID (Kevin)
 OWNER_ID = 864380109682900992
-
-# GF ID
 GF_ID = 1425090711019192434
 
-# VIP list - starts empty
 VIP_IDS = []
 
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
 
-# Disable built-in help to avoid conflict
 bot = commands.Bot(command_prefix="!", intents=intents, help_command=None)
 
-# Rotating DND status every 5 seconds
 STATUSES = [
     discord.Game(name="Daviccino Daddy 🔥"),
     discord.Game(name="Ohh kevin de brunye ⚽️"),
@@ -41,16 +35,11 @@ async def rotate_status():
 async def on_ready():
     print(f"{bot.user} is online!")
     bot.loop.create_task(rotate_status())
-    await bot.tree.sync()
-    print("Slash commands synced!")
+    await bot.tree.sync(guild=None)
+    print("Global slash commands synced!")
 
-# Helper: is VIP or Kevin?
 def is_vip(interaction):
     return interaction.user.id == OWNER_ID or interaction.user.id in VIP_IDS
-
-# ────────────────────────────────────────────────
-# 80 BRUTAL ROASTS (savage for all except gf protected)
-# ────────────────────────────────────────────────
 
 roasts = [
     "{user}, your existence is the strongest argument for retroactive abortion",
@@ -138,84 +127,118 @@ roasts = [
     "{user}, your personality is so mid even middle child said no"
 ]
 
-# ────────────────────────────────────────────────
-#  !help - beautiful embed (now works because built-in help is disabled)
-# ────────────────────────────────────────────────
-
 @bot.command(name="help")
 async def help_command(ctx):
     embed = discord.Embed(
         title="✦ Phantom Daviccino Help ✦",
-        description="Chaos, fun & love bot made with ❤️ by **Kevin**",
-        color=0xff3366  # hot pink
+        description="Chaos, fun & love bot",
+        color=0xff3366
     )
 
-    embed.set_thumbnail(url="https://i.imgur.com/0X0X0X0.png")  # optional icon
+    embed.set_thumbnail(url="https://i.imgur.com/7L0fK9L.png")
 
     embed.add_field(
         name="🔥 Core & VIP Commands",
         value="```"
-              "!roast @user       → savage roast (brutal for everyone except gf)\n"
+              "!roast @user       → savage roast\n"
               "/say text           → bot says anything (VIPs only)\n"
               "/dm @user text      → bot DMs someone (VIPs only)\n"
               "/mimic @user msg    → speak as someone (VIPs only)\n"
-              "/vipadd @user       → add VIP (Kevin only)\n"
-              "/vipremove @user    → remove VIP (Kevin only)\n"
+              "/vipadd @user       → add VIP (owner only)\n"
+              "/vipremove @user    → remove VIP (owner only)\n"
               "/viplist            → show VIPs (public)```",
         inline=False
     )
 
-    embed.add_field(
-        name="💘 Romance & Wholesome",
-        value="```"
-              "/ship @u1 @u2       → shipping meter (Kevin + gf = 100% always)\n"
-              "/compliment @user   → wholesome vibes (extra sweet for Kevin & gf)```",
-        inline=False
-    )
-
-    embed.set_footer(text="Made by Kevin • Phantom Daviccino 🔥 • 2026")
+    embed.set_footer(text="Phantom Daviccino 🔥 • 2026")
     embed.timestamp = discord.utils.utcnow()
 
     await ctx.send(embed=embed)
-
-# ────────────────────────────────────────────────
-#  Roast - brutal for all except gf protected
-# ────────────────────────────────────────────────
 
 @bot.command()
 async def roast(ctx, member: discord.Member = None):
     if member is None:
         member = ctx.author
 
-    if member.id == OWNER_ID:
-        await ctx.send("Can't roast Kevin! He's too majestic 👑🔥")
-        return
-
-    if member.id == GF_ID:
-        await ctx.send("Can't roast the queen! She's perfect ❤️✨")
+    if member.id == OWNER_ID or member.id == GF_ID:
+        await ctx.send("Can't roast that user!")
         return
 
     roast_text = random.choice(roasts).format(user=member.mention)
     await ctx.send(roast_text)
 
-# ────────────────────────────────────────────────
-#  Keep your other commands here (say, dm, vipadd, vipremove, viplist, mimic, etc.)
-# ────────────────────────────────────────────────
+@bot.tree.command(name="mimic", description="Send message as another user (VIPs only)")
+async def mimic(interaction: discord.Interaction, member: discord.Member, message: str):
+    if not is_vip(interaction):
+        await interaction.response.send_message("Only VIPs can use this.", ephemeral=True)
+        return
 
-# Example for /say (paste your other slash commands similarly)
+    if member.id == OWNER_ID:
+        await interaction.response.send_message("Can't mimic that user!", ephemeral=True)
+        return
+
+    await interaction.response.defer(ephemeral=True)
+
+    webhook = await interaction.channel.create_webhook(name=member.name)
+    await webhook.send(
+        content=message,
+        username=member.name,
+        avatar_url=member.avatar.url if member.avatar else None
+    )
+    await webhook.delete()
+
+    await interaction.followup.send(f"Sent as {member.mention}.", ephemeral=True)
+
 @bot.tree.command(name="say", description="Bot says something (VIPs only)")
 async def say(interaction: discord.Interaction, text: str):
-    if interaction.user.id != OWNER_ID and interaction.user.id not in VIP_IDS:
+    if not is_vip(interaction):
         await interaction.response.send_message("Only VIPs can use this.", ephemeral=True)
         return
     await interaction.channel.send(text)
     await interaction.response.send_message("Sent.", ephemeral=True)
 
-# ... add your other commands (vipadd, vipremove, viplist, mimic, ship, compliment, etc.) here from your previous code
+@bot.tree.command(name="viplist", description="Show VIP list (public)")
+async def viplist(interaction: discord.Interaction):
+    if not VIP_IDS:
+        await interaction.response.send_message("No VIPs yet! 👑", ephemeral=False)
+        return
 
-# ────────────────────────────────────────────────
-#  Run bot & Flask
-# ────────────────────────────────────────────────
+    mentions = [f"<@{uid}>" for uid in VIP_IDS]
+    await interaction.response.send_message(f"**VIPs:** 👑\n" + "\n".join(mentions), ephemeral=False)
+
+@bot.tree.command(name="vipadd", description="Add VIP (owner only)")
+async def vipadd(interaction: discord.Interaction, member: discord.Member):
+    if interaction.user.id != OWNER_ID:
+        await interaction.response.send_message("Only owner can add VIPs.", ephemeral=True)
+        return
+
+    if member.id == OWNER_ID:
+        await interaction.response.send_message("Owner is already VIP!", ephemeral=True)
+        return
+
+    if member.id in VIP_IDS:
+        await interaction.response.send_message(f"{member.mention} is already VIP!", ephemeral=True)
+        return
+
+    VIP_IDS.append(member.id)
+    await interaction.response.send_message(f"{member.mention} added to VIPs! 👑", ephemeral=True)
+
+@bot.tree.command(name="vipremove", description="Remove VIP (owner only)")
+async def vipremove(interaction: discord.Interaction, member: discord.Member):
+    if interaction.user.id != OWNER_ID:
+        await interaction.response.send_message("Only owner can remove VIPs.", ephemeral=True)
+        return
+
+    if member.id == OWNER_ID:
+        await interaction.response.send_message("Can't remove owner!", ephemeral=True)
+        return
+
+    if member.id not in VIP_IDS:
+        await interaction.response.send_message(f"{member.mention} is not VIP!", ephemeral=True)
+        return
+
+    VIP_IDS.remove(member.id)
+    await interaction.response.send_message(f"{member.mention} removed from VIPs.", ephemeral=True)
 
 def run_discord_bot():
     time.sleep(5)
