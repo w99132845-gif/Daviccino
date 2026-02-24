@@ -20,7 +20,7 @@ intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
 
-bot = commands.Bot(command_prefix="!", intents=intents)
+bot = commands.Bot(command_prefix="!", intents=intents, help_command=None)  # ← IMPORTANT: disables built-in !help
 
 # Rotating DND status every 5 seconds
 STATUSES = [
@@ -141,15 +141,15 @@ roasts = [
 #  !help - beautiful embed with all features
 # ────────────────────────────────────────────────
 
-@bot.command()
-async def help(ctx):
+@bot.command(name="help")
+async def help_command(ctx):
     embed = discord.Embed(
         title="✦ Phantom Daviccino Help ✦",
         description="Chaos, fun & love bot made with ❤️ by **Kevin**",
-        color=0xff3366
+        color=0xff3366  # hot pink
     )
 
-    embed.set_thumbnail(url="https://i.imgur.com/0X0X0X0.png")  # change to your bot icon if you have one
+    embed.set_thumbnail(url="https://i.imgur.com/0X0X0X0.png")  # optional icon
 
     embed.add_field(
         name="🔥 Core & VIP Commands",
@@ -201,7 +201,7 @@ async def roast(ctx, member: discord.Member = None):
 #  Keep your other commands here (say, dm, vipadd, vipremove, viplist, mimic, etc.)
 # ────────────────────────────────────────────────
 
-# Example placeholder for other commands (paste your existing ones)
+# Example for /say (paste your other slash commands similarly)
 @bot.tree.command(name="say", description="Bot says something (VIPs only)")
 async def say(interaction: discord.Interaction, text: str):
     if interaction.user.id != OWNER_ID and interaction.user.id not in VIP_IDS:
@@ -210,7 +210,7 @@ async def say(interaction: discord.Interaction, text: str):
     await interaction.channel.send(text)
     await interaction.response.send_message("Sent.", ephemeral=True)
 
-# ... add all your other slash commands (vipadd, vipremove, viplist, mimic, etc.) here
+# ... add your other commands (vipadd, vipremove, viplist, mimic, ship, compliment, etc.) here
 
 # ────────────────────────────────────────────────
 #  Run bot & Flask
